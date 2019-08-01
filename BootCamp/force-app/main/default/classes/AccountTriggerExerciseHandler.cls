@@ -1,5 +1,6 @@
 public with sharing class AccountTriggerExerciseHandler {
     
+    
     public static void beforeInsertMethod(List<Account> triggeredAccounts) {
         updateAccounts(triggeredAccounts);
     }
