@@ -1,12 +1,12 @@
 //Make sure to add context event in parameters.
 trigger AccountTrigger on Account (before insert, before update) {
 
-if (Trigger.isBefore && Trigger.isUpdate) {
+if (Trigger.isBefore && Trigger.isInsert) {
     AccountTriggerHandler.beforeInsertMethod(Trigger.new);
 }
 
 if (Trigger.isBefore && Trigger.isUpdate) {
-    AccountTriggerHandler.beforeInsertMethod(Trigger.new, Trigger.oldMap);
+    AccountTriggerHandler.beforeUpdateMethod(Trigger.new);
 }
 
 

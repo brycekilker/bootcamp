@@ -21,6 +21,14 @@ trigger ContactTrigger on Contact (before insert, after insert, before update, a
         for (Contact contactRecord : Trigger.new) {
              System.debug('this is the contact being created ');
          }
+
+        Set<Id> accountIds = new Set<Id>();
+
+         for(Contact contactRecord: Trigger.new) {
+             if(contactRecord.AccountId != null) {
+                 accountIds.add(contactRecord.Id);
+             }
+         }
         System.debug('Before Editing a contact');
 
     } 

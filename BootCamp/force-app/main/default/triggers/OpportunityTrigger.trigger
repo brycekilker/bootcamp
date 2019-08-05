@@ -1,12 +1,10 @@
-trigger OpportunityTrigger on Opportunity (before update) {
+trigger OpportunityTrigger on Opportunity (after insert, after update) {
 
-    if(Trigger.isBefore && Trigger.isUpdate){
-        OpportunityTriggerHandler.beforeUpdateMethod(Trigger.new);
+    if (Trigger.isAfter && Trigger.isInsert) {
+       OpportunityTriggerHandler.afterInsertMethod(Trigger.new, Trigger.oldMap);
     }
 
+    if (Trigger.isAfter && Trigger.isUpdate) {
+        OpportunityTriggerHandler.afterUpdateMethod(Trigger.new, Trigger.oldMap);  	
+    }
 }
-
-//What needs to happen here
-// If the Opp is updated we need to go into the related quote and update the address ??All quotes??
-//from the quote side ill check if its primary
-//Create a check to make sure that you don't create an infinite loop between updating opportunity and quote
