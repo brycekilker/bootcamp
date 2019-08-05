@@ -4,12 +4,8 @@ trigger QuoteTrigger on SBQQ__Quote__c (before insert, after insert,
        QuoteTriggerHandler.beforeInsertMethod(Trigger.new,Trigger.oldMap);
     }
 
-    // if (Trigger.isBefore && Trigger.isUpdate) {
-    //    QuoteTriggerHandler.beforeUpdateMethod(Trigger.new,Trigger.oldMap);
-    // }
-
-     if (Trigger.isBefore && Trigger.isUpdate) {
-       QuoteTriggerHandler.beforeUpdateMethod(Trigger.new );
+    if (Trigger.isBefore && Trigger.isUpdate) {
+       QuoteTriggerHandler.beforeUpdateMethod(Trigger.new,Trigger.oldMap);
     }
 
     if (Trigger.isAfter && Trigger.isInsert) {

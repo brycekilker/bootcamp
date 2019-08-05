@@ -6,15 +6,11 @@ public with sharing class QuoteTriggerHandler {
     
     public static void afterUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes, Map<Id, SBQQ__Quote__c> oldMap) {
         syncAddresses(triggeredQuotes, oldMap);
-        updateDiscountForProductFamily(triggeredQuotes, oldMap);
     }
 
-    // public static void beforeUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
-    //     // updateDiscount(triggeredQuotes, oldMap);
-    // }
-
-     public static void beforeUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes){
-        updateWatermark(triggeredQuotes);
+    public static void beforeUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
+        updateDiscountForProductFamily(triggeredQuotes, oldMap);
+        //manualUpdateOfDiscounts(triggeredQuotes, oldMap);
     }
 
     public static void afterInsertMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
@@ -88,10 +84,12 @@ public with sharing class QuoteTriggerHandler {
         for (SBQQ__Quote__c quote : triggeredQuotes) {
     
             SBQQ__Quote__c priorQuote = oldMap.get(quote.Id);
+
             if (quote.Hardware_Discount__c == priorQuote.Hardware_Discount__c && 
             quote.Software_Discount__c == priorQuote.Software_Discount__c && 
             quote.Support_Discount__c == priorQuote.Support_Discount__c) {
                 quoteIdSet.add(quote.Id);
+                System.debug('this is quote.Software_Discount -------------> ' + quoteIdSet);
             }
         }
        //Do a check to see if the quoteSet is 0 and stop the method
@@ -100,46 +98,52 @@ public with sharing class QuoteTriggerHandler {
         }
 
         //Create a map that has a string as the key and a list of Decimal as the value
-        Map<String, List<Decimal>> discounts = new Map<String, List<Decimal>>();
-        discounts.put('Hardware', new List<Decimal>{0.0, 0.0});
-        discounts.put('Software', new List<Decimal>{0.0, 0.0});
-        discounts.put('Support',  new List<Decimal>{0.0, 0.0});
+        Map<String, List<Decimal>> discountAmount = new Map<String, List<Decimal>>();
+        discountAmount.put('Hardware', new List<Decimal>{0.0, 0.0});
+        discountAmount.put('Software', new List<Decimal>{0.0, 0.0});
+        discountAmount.put('Support',  new List<Decimal>{0.0, 0.0});
+
+        System.debug('this is discountAmount -----> ' + discountAmount);
 
         //Make a list from the quote lines that line up with the quoteIdSet
-        List<SBQQ__QuoteLine__c> quoteLines = [
+        List<SBQQ__QuoteLine__c> quoteLinesToUpdate = [
             SELECT SBQQ__Discount__c, SBQQ__ListTotal__c, SBQQ__ProductFamily__c
             FROM SBQQ__QuoteLine__c 
             WHERE SBQQ__Quote__c 
             IN :quoteIdSet
         ];
+
+        System.debug('this is quoteLinesToUpdate -----> ' + quoteLinesToUpdate);
         
-        //Loop through quoteLines list, if the discount field is blank, put a 0
-        for (SBQQ__QuoteLine__c quoteLine : quoteLines) {
+        //Loop through quoteLinesToUpdate list, if the discount field is blank, put a 0
+        for (SBQQ__QuoteLine__c quoteLine : quoteLinesToUpdate) {
             if (quoteLine.SBQQ__Discount__c == null) {
                 quoteLine.SBQQ__Discount__c = 0;
             }
             //First list value adds the discount
-            discounts.get(quoteLine.SBQQ__ProductFamily__c)[0] += quoteLine.SBQQ__Discount__c;
+            discountAmount.get(quoteLine.SBQQ__ProductFamily__c)[0] += quoteLine.SBQQ__Discount__c;
             //Second list value is incremented for each product to find the number of discounted products
-            discounts.get(quoteLine.SBQQ__ProductFamily__c)[1] ++;
+            discountAmount.get(quoteLine.SBQQ__ProductFamily__c)[1] ++;
         }
         //populates the list items into Decimal values
-        Decimal hardwareCount = discounts.get('Hardware')[1];
-        Decimal softwareCount = discounts.get('Software')[1];
-        Decimal supportCount = discounts.get('Support')[1];
-        Decimal hardwareDiscount = discounts.get('Hardware')[0];
-        Decimal softwareDiscount = discounts.get('Software')[0];
-        Decimal supportDiscount = discounts.get('Support')[0];
+        //Discount
+        Decimal hardwareDiscount = discountAmount.get('Hardware')[0];
+        Decimal softwareDiscount = discountAmount.get('Software')[0];
+        Decimal supportDiscount = discountAmount.get('Support')[0];
+        //# for the average
+        Decimal hardwareCount = discountAmount.get('Hardware')[1];
+        Decimal softwareCount = discountAmount.get('Software')[1];
+        Decimal supportCount = discountAmount.get('Support')[1];
 
         //Finds the average if the count does not equal 0
         if (hardwareCount != 0) {
-            hardwareDiscount /= hardwareCount;
+            hardwareDiscount = hardwareDiscount / hardwareCount;
         }
         if (softwareCount != 0) {
-            softwareDiscount /= softwareCount;
+            softwareDiscount =  softwareDiscount / softwareCount;
         }
         if (supportCount != 0) {
-            supportDiscount /= supportCount;
+            supportDiscount = supportDiscount / supportCount;
         }
 
         // update the quote discount fields with the result 
@@ -155,5 +159,26 @@ public with sharing class QuoteTriggerHandler {
             } 
         }
     }
+
+    // public static void manualUpdateOfDiscounts(List<SBQQ__Quote__c> triggeredQuotes, Map<Id, SBQQ__Quote__c> oldMap) {
+    //      //create Id's for Map
+    //     Set<Id> quoteIdSet = new Set<Id>();
+        
+    //     for(SBQQ__Quote__c quotes : triggeredQuotes) {
+
+    //         SBQQ__Quote__c priorQuote = oldMap.get(quote.Id);
+
+    //           if (quote.Hardware_Discount__c == priorQuote.Hardware_Discount__c && 
+    //             quote.Software_Discount__c == priorQuote.Software_Discount__c && 
+    //             quote.Support_Discount__c == priorQuote.Support_Discount__c) {
+    //             quoteIdSet.add(quote.Id);
+    //             System.debug('this is quote.Software_Discount -------------> ' + quoteIdSet);
+    //         }
+    //     }
+    //    //Do a check to see if the quoteSet is 0 and stop the method
+    //     if (quoteIdSet.size() == 0) {
+    //         return;
+    //     }
+    // }
 
 }
