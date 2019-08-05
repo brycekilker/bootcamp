@@ -6,17 +6,20 @@ public with sharing class QuoteTriggerHandler {
     
     public static void afterUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes, Map<Id, SBQQ__Quote__c> oldMap) {
         syncAddresses(triggeredQuotes, oldMap);
-        //updateQuoteLineDiscountField(triggeredQuotes ,oldMap);
+        updateDiscountForProductFamily(triggeredQuotes, oldMap);
     }
 
     // public static void beforeUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
-    //     checkWatermarkMethod(triggeredQuotes );
-    //     calculateAverageDiscountProductFamily(triggeredQuotes ,oldMap);
+    //     // updateDiscount(triggeredQuotes, oldMap);
     // }
 
-    // public static void afterInsertMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
-    //     syncOpportunityAddresses(triggeredQuotes ,oldMap);
-    // }
+     public static void beforeUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes){
+        updateWatermark(triggeredQuotes);
+    }
+
+    public static void afterInsertMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
+        syncAddresses(triggeredQuotes, oldMap);
+    }
 
     //----------------Helper Methods--------------//
     private static void updateWatermark(List<SBQQ__Quote__c> triggeredQuotes){
@@ -77,20 +80,79 @@ public with sharing class QuoteTriggerHandler {
     }
 
 
-    private static void updateDiscount(List<SBQQ__Quote__c> triggeredQuotes) {
-        //it sounds like discount formulas are only accessable via api calls
-        /*Planning
-            Write a method that will find the average discount for each Product Family, 
-            taking into account not only discount % but also the List Total, and populate the values in each of the 3 new fields on the Quote.
-            let's think about what needs to happen.
-            **THere is an sObject called recalculate formaula fieds, its in chat, it may be useful - sounds like it might not work - each one also counts as a SOQL query
-            1. pull all of the discounts in each product family
-            2. find the average of those numbers by the percent and list price SUM the discounted amount divided by the total amount discounted by each type. 
-                - remember to use the Decimal type declaration devide softwarediscounttotal/ListPriceTotal
-            3. 
+   private static void updateDiscountForProductFamily(List<SBQQ__Quote__c> triggeredQuotes, Map<Id, SBQQ__Quote__c> oldMap) {
+       //create Id's for Map
+        Set<Id> quoteIdSet = new Set<Id>();
+        //Loop through triggered quotes and see if they match the old info
+        for (SBQQ__Quote__c quote : triggeredQuotes) {
+    
+            SBQQ__Quote__c priorQuote = oldMap.get(quote.Id);
+            if (quote.Hardware_Discount__c == priorQuote.Hardware_Discount__c && 
+            quote.Software_Discount__c == priorQuote.Software_Discount__c && 
+            quote.Support_Discount__c == priorQuote.Support_Discount__c) {
+                quoteIdSet.add(quote.Id);
+            }
+        }
+       //Do a check to see if the quoteSet is 0 and stop the method
+        if (quoteIdSet.size() == 0) {
+            return;
+        }
 
+        //Create a map that has a string as the key and a list of Decimal as the value
+        Map<String, List<Decimal>> discounts = new Map<String, List<Decimal>>();
+        discounts.put('Hardware', new List<Decimal>{0.0, 0.0});
+        discounts.put('Software', new List<Decimal>{0.0, 0.0});
+        discounts.put('Support',  new List<Decimal>{0.0, 0.0});
+
+        //Make a list from the quote lines that line up with the quoteIdSet
+        List<SBQQ__QuoteLine__c> quoteLines = [
+            SELECT SBQQ__Discount__c, SBQQ__ListTotal__c, SBQQ__ProductFamily__c
+            FROM SBQQ__QuoteLine__c 
+            WHERE SBQQ__Quote__c 
+            IN :quoteIdSet
+        ];
         
-        */
+        //Loop through quoteLines list, if the discount field is blank, put a 0
+        for (SBQQ__QuoteLine__c quoteLine : quoteLines) {
+            if (quoteLine.SBQQ__Discount__c == null) {
+                quoteLine.SBQQ__Discount__c = 0;
+            }
+            //First list value adds the discount
+            discounts.get(quoteLine.SBQQ__ProductFamily__c)[0] += quoteLine.SBQQ__Discount__c;
+            //Second list value is incremented for each product to find the number of discounted products
+            discounts.get(quoteLine.SBQQ__ProductFamily__c)[1] ++;
+        }
+        //populates the list items into Decimal values
+        Decimal hardwareCount = discounts.get('Hardware')[1];
+        Decimal softwareCount = discounts.get('Software')[1];
+        Decimal supportCount = discounts.get('Support')[1];
+        Decimal hardwareDiscount = discounts.get('Hardware')[0];
+        Decimal softwareDiscount = discounts.get('Software')[0];
+        Decimal supportDiscount = discounts.get('Support')[0];
+
+        //Finds the average if the count does not equal 0
+        if (hardwareCount != 0) {
+            hardwareDiscount /= hardwareCount;
+        }
+        if (softwareCount != 0) {
+            softwareDiscount /= softwareCount;
+        }
+        if (supportCount != 0) {
+            supportDiscount /= supportCount;
+        }
+
+        // update the quote discount fields with the result 
+        for (SBQQ__Quote__c quote : triggeredQuotes) {
+            if (quote.Hardware_Discount__c == oldMap.get(quote.Id).Hardware_Discount__c) {
+                quote.Hardware_Discount__c = hardwareDiscount;
+            }
+            if (quote.Software_Discount__c == oldMap.get(quote.Id).Software_Discount__c) {
+                quote.Software_Discount__c = softwareDiscount;
+            }
+            if (quote.Support_Discount__c == oldMap.get(quote.Id).Support_Discount__c) {
+                quote.Support_Discount__c  = supportDiscount;
+            } 
+        }
     }
 
 }
