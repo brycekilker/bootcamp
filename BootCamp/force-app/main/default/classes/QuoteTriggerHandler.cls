@@ -10,12 +10,12 @@ public with sharing class QuoteTriggerHandler {
 
     public static void beforeUpdateMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
         updateDiscountForProductFamily(triggeredQuotes, oldMap);
-        //manualUpdateOfDiscounts(triggeredQuotes, oldMap);
+        // manualUpdateOfDiscounts(triggeredQuotes, oldMap);
     }
 
-    public static void afterInsertMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
-        syncAddresses(triggeredQuotes, oldMap);
-    }
+    // public static void afterInsertMethod(List<SBQQ__Quote__c> triggeredQuotes , Map<Id,SBQQ__Quote__c> oldMap){
+    //     syncAddresses(triggeredQuotes, oldMap);
+    // }
 
     //----------------Helper Methods--------------//
     private static void updateWatermark(List<SBQQ__Quote__c> triggeredQuotes){
@@ -41,13 +41,12 @@ public with sharing class QuoteTriggerHandler {
             if(quote.SBQQ__Opportunity2__c != null) {
                 if(quote.SBQQ__Primary__c) {
                     //Check if anything has changed between the new and old quote
-                    if(quote.SBQQ__BillingName__c != oldMap.get(quote.Id).SBQQ__BillingName__c ||
+                    if(
                        quote.SBQQ__BillingCountry__c != oldMap.get(quote.Id).SBQQ__BillingCountry__c ||
                        quote.SBQQ__BillingCity__c != oldMap.get(quote.Id).SBQQ__BillingCity__c ||
                        quote.SBQQ__BillingPostalCode__c != oldMap.get(quote.Id).SBQQ__BillingPostalCode__c ||
                        quote.SBQQ__BillingState__c != oldMap.get(quote.Id).SBQQ__BillingState__c ||
                        quote.SBQQ__BillingStreet__c != oldMap.get(quote.Id).SBQQ__BillingStreet__c ||
-                       quote.SBQQ__ShippingName__c != oldMap.get(quote.Id).SBQQ__ShippingName__c ||
                        quote.SBQQ__ShippingCountry__c != oldMap.get(quote.Id).SBQQ__ShippingCountry__c ||
                        quote.SBQQ__ShippingCity__c != oldMap.get(quote.Id).SBQQ__ShippingCity__c ||
                        quote.SBQQ__ShippingPostalCode__c != oldMap.get(quote.Id).SBQQ__ShippingPostalCode__c ||
@@ -89,7 +88,8 @@ public with sharing class QuoteTriggerHandler {
             quote.Software_Discount__c == priorQuote.Software_Discount__c && 
             quote.Support_Discount__c == priorQuote.Support_Discount__c) {
                 quoteIdSet.add(quote.Id);
-                System.debug('this is quote.Software_Discount -------------> ' + quoteIdSet);
+                System.debug('this is quote.Software_Discount -------------> ' + quote.Software_Discount__c);
+                System.debug('this is the old software Discount =------> ' + priorQuote.Software_Discount__c);
             }
         }
        //Do a check to see if the quoteSet is 0 and stop the method
@@ -164,21 +164,31 @@ public with sharing class QuoteTriggerHandler {
     //      //create Id's for Map
     //     Set<Id> quoteIdSet = new Set<Id>();
         
-    //     for(SBQQ__Quote__c quotes : triggeredQuotes) {
-
+    //     for(SBQQ__Quote__c quote : triggeredQuotes) {
     //         SBQQ__Quote__c priorQuote = oldMap.get(quote.Id);
 
-    //           if (quote.Hardware_Discount__c == priorQuote.Hardware_Discount__c && 
-    //             quote.Software_Discount__c == priorQuote.Software_Discount__c && 
-    //             quote.Support_Discount__c == priorQuote.Support_Discount__c) {
+    //             //See if there are manual changes, we want to update the quote line values
+    //           if (quote.Hardware_Discount__c != priorQuote.Hardware_Discount__c  ||
+    //             quote.Software_Discount__c != priorQuote.Software_Discount__c || 
+    //             quote.Support_Discount__c != priorQuote.Support_Discount__c) {
     //             quoteIdSet.add(quote.Id);
-    //             System.debug('this is quote.Software_Discount -------------> ' + quoteIdSet);
+    //             System.debug('this is the second hit from manual discount -------------> ' + quoteIdSet);
     //         }
     //     }
     //    //Do a check to see if the quoteSet is 0 and stop the method
     //     if (quoteIdSet.size() == 0) {
     //         return;
     //     }
+
+    //     //Now I need to find the quote lines to update.
+    //     List<SBQQ__Quote__c> quotes = [
+    //         SELECT Id, Hardware_Discount__c, Software_Discount__c, Support_Discount__c
+    //         FROM SBQQ__Quote__c
+    //         WHERE Id IN : quoteIdSet
+    //     ];
+
+    //     System.debug('these are quotes we grabbed --------> ' + quotes);
+
     // }
 
 }
