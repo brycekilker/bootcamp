@@ -7,10 +7,6 @@ public with sharing class AccountTriggerHandler {
         updateAccounts(triggeredAccounts);
     }
 
-    // public static void afterInsertMethod(List<Account> triggeredAccounts, Map<Id, Account> accountsOldMap) {
-        
-    // }
-
     public static void beforeUpdateMethod(List<Account> triggeredAccounts) {
         System.debug('Before Update ------------> ');
         updateAccounts(triggeredAccounts);

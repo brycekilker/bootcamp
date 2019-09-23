@@ -7,10 +7,10 @@ trigger QuoteTrigger on SBQQ__Quote__c (before insert, after insert,
     if (Trigger.isBefore && Trigger.isUpdate) {
        QuoteTriggerHandler.beforeUpdateMethod(Trigger.new,Trigger.oldMap);
     }
-
-    if (Trigger.isAfter && Trigger.isInsert) {
-       QuoteTriggerHandler.afterInsertMethod(Trigger.new,Trigger.oldMap);
-    }
+   //This was causing issues when testing the opportunity and adding a quote
+   //  if (Trigger.isAfter && Trigger.isInsert) {
+   //     QuoteTriggerHandler.afterInsertMethod(Trigger.new,Trigger.oldMap);
+   //  }
 
     if (Trigger.isAfter && Trigger.isUpdate) {
         QuoteTriggerHandler.afterUpdateMethod(Trigger.new,Trigger.oldMap);  	
