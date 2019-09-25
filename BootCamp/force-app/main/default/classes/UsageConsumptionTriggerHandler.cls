@@ -15,10 +15,10 @@ public with sharing class UsageConsumptionTriggerHandler extends TriggerHandler 
         updateTotalCharge(Trigger.new);
     }
  
-    protected override void afterDelete() {
-        System.debug(System.LoggingLevel.FINE, 'UsageConsumptionTriggerHandler.afterDelete');
-        updateTotalCharge(Trigger.old);
-    }
+    // protected override void afterDelete() {
+    //     System.debug(System.LoggingLevel.FINE, 'UsageConsumptionTriggerHandler.afterDelete');
+    //     updateTotalCharge(Trigger.old);
+    // }
     //I'm sure I could do this whole thing more succinctly
     public static void updateTotalCharge(List<Usage_Consumption__c> usageConsumptionRecords) {        
         Map<Id, Decimal> UsageSummaryMapToUpdate = new Map<Id, Decimal>();

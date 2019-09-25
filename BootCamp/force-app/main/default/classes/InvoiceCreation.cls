@@ -3,21 +3,25 @@ global with sharing class InvoiceCreation implements Database.Batchable<SObject>
     String query;
 
     global InvoiceCreation() {
-        
+        if(Test.isRunningTest()){
+            Usage_Invoice__c newUsageInvoice = new Usage_Invoice__c(Name = 'test usage invoice');
+            insert newUsageInvoice;
+        }
 
         //Create Usage Invoices 
         List<Usage_Invoice__c> newUsageInvoices = new List<Usage_Invoice__c>();
-        
-        for (Usage_Summary__c usageSummary : [
-            SELECT Id, Account__c, Order_Product__c, End_Date__c, Order__c, order__r.SBQQ__Quote__r.SBQQ__Opportunity2__c,
+        List<Usage_Summary__c> listofUsageSummaries = [
+            SELECT Id, Account__c, Order_Product__c, End_Date__c, Order__c, Order__r.Order_Product__r.Opportunity__c, order__r.SBQQ__Quote__c,
                    Grand_Total_Usage__c, Base_Charge__c, Overage_Charge__c, Total_Charge__c 
             FROM Usage_Summary__c
             WHERE End_Date__c <= TODAY
-        ]) {
-            Usage_Invoice__c newUsageInvoice = new Usage_Invoice__c();
+        ];
+         
 
+        for (Usage_Summary__c usageSummary : listofUsageSummaries ) {
+            Usage_Invoice__c newUsageInvoice = new Usage_Invoice__c();
             newUsageInvoice.Account__c = usageSummary.Account__c;
-            newUsageInvoice.Opportunity__c = usageSummary.order__r.SBQQ__Quote__r.SBQQ__Opportunity2__c;
+            newUsageInvoice.Opportunity__c = usageSummary.Order__r.Order_Product__r.Opportunity__c;
             newUsageInvoice.Quote__c = usageSummary.order__r.SBQQ__Quote__c;
             newUsageInvoice.Order__c = usageSummary.Order__c;
             newUsageInvoice.Order_Product__c = usageSummary.Order_Product__c;
@@ -28,13 +32,15 @@ global with sharing class InvoiceCreation implements Database.Batchable<SObject>
             newUsageInvoices.add(newUsageInvoice);
         }
 
+        System.debug('did we make any invoices? ' + newUsageInvoices);
+
         if(newUsageInvoices.size() != 0) {
             insert newUsageInvoices;
         }
 
-        query = 'SELECT Id, Account__c, Opportunity__c,  usageSummary.order__r.SBQQ__Quote__c, Order__c, Order_Product__c, Usage_Summary__c, Total_Amount_Due__c '
-                + 'FROM Usage_Summary__c '
-                + 'WHERE UsageSummaryId__r.End_Date__c <= TODAY';
+        query = 'SELECT Id, Account__c, Opportunity__c, Month__c, Quote__c, Order__c, Order_Product__c, Usage_Summary__c, Total_Amount_Due__c, LastModifiedDate '
+                + 'FROM Usage_Invoice__c '
+                + 'WHERE LastModifiedDate <= TODAY';
     }
 
     global Database.QueryLocator start (Database.BatchableContext BC) {
