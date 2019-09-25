@@ -1,0 +1,60 @@
+<apex:page controller="AccountManagerController">
+
+    <apex:form>
+        <apex:pageBlock title="Account List" id="accountForm">
+
+            <apex:pageBlockSection title="Create or Edit Account" columns="2" collapsible="false">
+                <apex:inputField value="{!selectedAccount.Name}" />
+                <apex:inputField value="{!selectedAccount.Type}" />
+                <apex:inputField value="{!selectedAccount.NumberOfEmployees}" />
+                <apex:inputField value="{!selectedAccount.Industry}" />
+                <apex:outputField value="{!selectedAccount.Id}" />
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons>
+                <apex:commandButton action="{!createAccountOrUpdateAccount}" value="create or Update Account" reRender="accountForm, accountTable"/>
+                <apex:commandButton action="{!clearForm}" value="clear Form" reRender="accountForm"/>
+            </apex:pageBlockButtons>
+
+        </apex:pageBlock>
+    </apex:form>
+    <apex:form>
+        <apex:pageBlock>
+            <apex:pageBlockButtons>
+                <apex:commandButton action="{!deleteAccounts}" value="delete Selected Accounts" reRender="accountForm, accountTable"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!accountWrappers}" var="accountWrapper" id="accountTable">
+                <apex:column>
+                    <apex:inputCheckbox value="{!accountWrapper.isSelected}"/>
+                </apex:column>
+                <apex:column value="{!accountWrapper.account.Id}"/>
+                <apex:column>
+                    <apex:facet name="header">Account Name</apex:facet>
+                    <apex:outputText value="{!accountWrapper.account.Name}"/>
+                </apex:column>
+                <apex:column>
+                    <apex:facet name="header">Account Type</apex:facet>
+                    <apex:outputText value="{!accountWrapper.account.Type}"/>
+                </apex:column>
+                <apex:column>
+                    <apex:facet name="header">Number of Employees Employeees</apex:facet>
+                    <apex:outputText value="{!accountWrapper.account.NumberOfEmployees}"/>
+                </apex:column>
+                <apex:column>
+                    <apex:facet name="header">Created Date</apex:facet>
+                    <apex:outputText value="{!accountWrapper.account.CreatedDate}"/>
+                </apex:column>
+                <apex:column>
+                    <apex:commandButton action="{!populateAccountForm}" value="Select" reRender="accountForm, accountTable">
+                        <apex:param name="accountId" value="{!accountWrapper.account.Id}" assignTo="{!selectedAccount.Id}" />
+                        <apex:param name="accountName" value="{!accountWrapper.account.Name}" assignTo="{!selectedAccount.Name}" />
+                        <apex:param name="accountType" value="{!accountWrapper.account.Type}" assignTo="{!selectedAccount.Type}" />
+                        <apex:param name="numberOfEmployees" value="{!accountWrapper.account.NumberOfEmployees}" assignTo="{!selectedAccount.NumberOfEmployees}"
+                        />
+                    </apex:commandButton>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+
+
+</apex:page>

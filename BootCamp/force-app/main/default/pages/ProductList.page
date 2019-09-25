@@ -1,0 +1,49 @@
+<apex:page controller="ProductListController">
+    <apex:form>
+             <apex:pageBlock title="Product List" id="productForm">
+
+                <apex:pageBlockSection title="Product Details" columns="2" collapsible="false">
+                    <apex:outputField value="{!selectedProduct.Name}" />
+                    <apex:outputField value="{!selectedProduct.Id}" />
+                    <apex:outputField value="{!selectedProduct.Family}" />
+
+                </apex:pageBlockSection>
+                <apex:pageBlockButtons>
+                    <apex:commandButton action="{!clearForm}" value="clear Form" reRender="productForm"/>
+                </apex:pageBlockButtons>
+    
+            </apex:pageBlock>
+        <apex:pageBlock>
+            <apex:pageBlockTable value="{!productList}" var="product" id="productTable">
+                <apex:column>
+                        <apex:facet name="header">Product Name</apex:facet>
+                        <apex:outputText value="{!product.Name}" />
+                </apex:column>
+                <apex:column>
+                        <apex:facet name="header">Product Family</apex:facet>
+                        <apex:outputText value="{!product.Family}" />
+                </apex:column>
+                <apex:column>
+                <apex:commandButton action="{!populateProductForm}" value="Select" reRender="productForm, accountTable, assetTable">
+                    <apex:param name="productId" value="{!product.Id}" assignTo="{!selectedProduct.Id}" />
+                    <apex:param name="productName" value="{!product.Name}" assignTo="{!selectedProduct.Name}" />
+                    <apex:param name="productFamily" value="{!product.Family}" assignTo="{!selectedProduct.Family}" />
+                    <!-- <apex:param name="assetName" value="{!asset.Name}" assignTo="{!selectedAsset.Name}" />
+                    <apex:param name="assetDescription" value="{!asset.Description}" assignTo="{!selectedAsset.Description}" /> -->
+
+                    </apex:commandButton>
+                </apex:column>
+            </apex:pageBlockTable>
+            <apex:pageBlockTable value="{!assetList}" var="asset" id="assetTable">
+                <apex:column>
+                        <apex:facet name="header">Asset Name</apex:facet>
+                        <apex:outputText value="{!asset.Name}" />
+                </apex:column>
+                <apex:column>
+                        <apex:facet name="header">Asset Description</apex:facet>
+                        <apex:outputText value="{!asset.Description}" />
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

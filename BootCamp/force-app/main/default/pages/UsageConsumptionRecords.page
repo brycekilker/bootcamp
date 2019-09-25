@@ -1,0 +1,45 @@
+<apex:page controller="UsageConsumptionRecordsController">
+    <apex:form >
+        <apex:pageBlock title="Usage Consumption List" id="consumptionForm" rendered="{!UsageConsumptionExists}">
+            <apex:pageBlockTable value="{!usageConsumptionList}" var="usageConsumption" id="UsageConsumptionTable">
+                <apex:column>
+                    <apex:facet name="header">Id</apex:facet>
+                    <apex:outputText value="{!usageConsumption.Id}"/>
+                </apex:column>
+                <apex:column>
+                    <apex:facet name="header">Usage Summary</apex:facet>
+                    <apex:outputText value="{!usageConsumption.Usage_Summary__c}"/>
+                </apex:column>
+                <apex:column>
+                    <apex:facet name="header">Usage Amount</apex:facet>
+                    <apex:outputText value="{!usageConsumption.Usage_Amount__c}"/>
+                </apex:column>
+                <!-- <apex:column>
+                    <apex:commandButton action="{!getConsumptionRecords}" value="Select" reRender="UsageConsumptionTable">
+                    </apex:commandButton>
+                </apex:column> -->
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+    <apex:form>
+        <apex:pageBlock title="Selected Usage Summary"  id ="SelectedUsageSummary">
+            <apex:pageBlockSection title="Usage Summary" columns="2" id="usageSummary">
+                <apex:outputField label="Usage Summary Id" value="{!currentUsageSummary.Name}" />
+                <apex:outputField label="Account" value="{!currentUsageSummary.Account__c}" />
+                <apex:outputField label="Start Date" value="{!currentUsageSummary.Start_Date__c}" />
+                <apex:outputField label="End Date" value="{!currentUsageSummary.End_Date__c}" />
+                <apex:outputField label="Order" value="{!currentUsageSummary.Order__c}" />
+                <apex:outputField label="Total Usage" value="{!currentUsageSummary.Grand_Total_Usage__c}"/>
+                <apex:outputField label="Order Product" value="{!currentUsageSummary.Order_Product__c}" />
+                <apex:outputField label="Total Charge" value="{!currentUsageSummary.Total_Charge__c}" />
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Create Or Edit Usage Summary" id="createOrEditUsageConsumption">
+                <apex:inputField value="{!newUsageConsumptionRecord.Loaded_Date__c}" />
+                <apex:inputField value="{!newUsageConsumptionRecord.Usage_Amount__c}" />
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons>
+                <apex:commandButton action="{!createOrEditUsageConsumptionRecord}" value="Create Consumption Record" reRender="SelectedUsageSummary, consumptionForm"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>
